@@ -47,9 +47,8 @@
 
   NSString *sdp = json[@"candidate"];
   NSLog(@"%@ <- candidate", sdp);
-  int sdpMLineIndex = [RCTConvert int:json[@"sdpMLineIndex"]];
-  NSString *sdpMid = json[@"sdpMid"];
-
+  int sdpMLineIndex = [[RCTConvert NSString:json[@"sdpMLineIndex"]] intValue];
+  NSString *sdpMid = [RCTConvert NSString:json[@"sdpMid"]];
 
   return [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:sdpMid];
 }
