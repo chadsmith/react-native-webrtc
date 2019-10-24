@@ -25,6 +25,14 @@ type RTCSignalingState =
   'have-remote-pranswer' |
   'closed';
 
+type RTCConnectionState =
+  'new' |
+  'connecting' |
+  'connected' |
+  'failed' |
+  'disconnected' |
+  'closed';
+
 type RTCIceGatheringState =
   'new' |
   'gathering' |
@@ -69,6 +77,7 @@ export default class RTCPeerConnection extends EventTarget(PEER_CONNECTION_EVENT
   remoteDescription: RTCSessionDescription;
 
   signalingState: RTCSignalingState = 'stable';
+  connectionState: RTCConnectionState = 'new';
   iceGatheringState: RTCIceGatheringState = 'new';
   iceConnectionState: RTCIceConnectionState = 'new';
 
@@ -288,6 +297,17 @@ export default class RTCPeerConnection extends EventTarget(PEER_CONNECTION_EVENT
         const stream = new MediaStream(ev);
         this._remoteStreams.push(stream);
         this.dispatchEvent(new MediaStreamEvent('addstream', {stream}));
+      }),
+      DeviceEventEmitter.addListener('peerConnectionConnectionStateChanged', ev => {
+        if (ev.id !== this._peerConnectionId) {
+          return;
+        }
+        this.connectionState = ev.connectionState;
+        this.dispatchEvent(new RTCEvent('connectionstatechange'));
+        if (ev.connectionState === 'closed') {
+          // This PeerConnection is done, clean up event handlers.
+          this._unregisterEvents();
+        }
       }),
       DeviceEventEmitter.addListener('peerConnectionRemovedStream', ev => {
         if (ev.id !== this._peerConnectionId) {

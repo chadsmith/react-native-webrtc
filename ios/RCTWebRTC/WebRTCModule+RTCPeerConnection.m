@@ -375,6 +375,18 @@ RCT_EXPORT_METHOD(peerConnectionGetStats:(nonnull NSString *)trackID
   return s;
 }
 
+- (NSString *)stringForConnectionState:(RTCPeerConnectionState)state {
+  switch (state) {
+    case RTCPeerConnectionStateNew: return @"new";
+    case RTCPeerConnectionStateConnecting: return @"connecting";
+    case RTCPeerConnectionStateConnected: return @"connected";
+    case RTCPeerConnectionStateFailed: return @"failed";
+    case RTCPeerConnectionStateDisconnected: return @"disconnected";
+    case RTCPeerConnectionStateClosed: return @"closed";
+  }
+  return nil;
+}
+
 - (NSString *)stringForICEConnectionState:(RTCIceConnectionState)state {
   switch (state) {
     case RTCIceConnectionStateNew: return @"new";
@@ -466,6 +478,11 @@ RCT_EXPORT_METHOD(peerConnectionGetStats:(nonnull NSString *)trackID
 - (void)peerConnectionShouldNegotiate:(RTCPeerConnection *)peerConnection {
   [self.bridge.eventDispatcher sendDeviceEventWithName:@"peerConnectionOnRenegotiationNeeded" body:
    @{@"id": peerConnection.reactTag}];
+}
+
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeConnectionState:(RTCPeerConnectionState)newState {
+  [self.bridge.eventDispatcher sendDeviceEventWithName:@"peerConnectionConnectionStateChanged" body:
+   @{@"id": peerConnection.reactTag, @"connectionState": [self stringForConnectionState:newState]}];
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceConnectionState:(RTCIceConnectionState)newState {

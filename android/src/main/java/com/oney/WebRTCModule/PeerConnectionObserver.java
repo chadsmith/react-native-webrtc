@@ -28,7 +28,6 @@ import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.RtpReceiver;
-import org.webrtc.StatsObserver;
 import org.webrtc.StatsReport;
 import org.webrtc.VideoTrack;
 
@@ -283,6 +282,15 @@ class PeerConnectionObserver implements PeerConnection.Observer {
     }
 
     @Override
+    public void onConnectionChange(PeerConnection.PeerConnectionState peerConnectionState) {
+        WritableMap params = Arguments.createMap();
+        params.putInt("id", id);
+        params.putString("connectionState", connectionStateString(peerConnectionState));
+
+        webRTCModule.sendEvent("peerConnectionConnectionStateChanged", params);
+    }
+
+    @Override
     public void onIceCandidate(final IceCandidate candidate) {
         Log.d(TAG, "onIceCandidate");
         WritableMap params = Arguments.createMap();
@@ -472,6 +480,25 @@ class PeerConnectionObserver implements PeerConnection.Observer {
     @Override
     public void onAddTrack(final RtpReceiver receiver, final MediaStream[] mediaStreams) {
         Log.d(TAG, "onAddTrack");
+    }
+
+    @Nullable
+    private String connectionStateString(PeerConnection.PeerConnectionState peerConnectionState) {
+        switch (peerConnectionState) {
+            case NEW:
+                return "new";
+            case CONNECTING:
+                return "connecting";
+            case CONNECTED:
+                return "connected";
+            case FAILED:
+                return "failed";
+            case DISCONNECTED:
+                return "disconnected";
+            case CLOSED:
+                return "closed";
+        }
+        return null;
     }
 
     @Nullable
